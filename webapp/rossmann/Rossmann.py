@@ -8,11 +8,11 @@ import datetime
 class Rossmann( object ):
     def __init__( self ):
         self.home_path = ''
-        self.competition_distance_scaler = joblib.load(self.home_path + 'parameter\\competition_distance_scaler.pkl')
-        self.store_type_scaler = joblib.load(self.home_path + 'parameter\\store_type_scaler.pkl')
-        self.competition_time_month_scaler = joblib.load(self.home_path + 'parameter\\competition_time_month_scaler.pkl')
-        self.promo_time_week_scaler = joblib.load(self.home_path + 'parameter\\promo_time_week_scaler.pkl')
-        self.year_scaler = joblib.load(self.home_path + 'parameter\\year_scaler.pkl')
+        self.competition_distance_scaler = joblib.load(self.home_path + 'parameter/competition_distance_scaler.pkl')
+        self.store_type_scaler = joblib.load(self.home_path + 'parameter/store_type_scaler.pkl')
+        self.competition_time_month_scaler = joblib.load(self.home_path + 'parameter/competition_time_month_scaler.pkl')
+        self.promo_time_week_scaler = joblib.load(self.home_path + 'parameter/promo_time_week_scaler.pkl')
+        self.year_scaler = joblib.load(self.home_path + 'parameter/year_scaler.pkl')
         
         
         

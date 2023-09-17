@@ -6,7 +6,7 @@ from rossmann.Rossmann import Rossmann
 import joblib
 
 # load_model
-model = joblib.load('model\\xgb_ds_producao.pkl')
+model = joblib.load('model/xgb_ds_producao.pkl')
 
 app = Flask(__name__)
 
