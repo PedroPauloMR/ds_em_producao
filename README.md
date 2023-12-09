@@ -1,168 +1,214 @@
 # Rossmann Sales Predict
+
 ###### This project has academic purposes.
 # 
 
 
-![](graph-gc6fdabf68_1280.jpg)
-
-
-# 1. Business Problem.
+# Business Problem
 
 Rossmann's is a big European drugstore. Some store managers call me to help them to predict sales for the next six weeks.
 The root cause is a demand from the CFO, discussed at their weekly meeting: he needed to plan store renovations, and for that, the budget needs to be aligned with each store's sales.
 Therefore, the principal stakeholder is the CFO, but from which all store managers will benefit.
 
 
-# 2. Business Assumptions.
-
-All data was taken from the company's internal sales base of the last 30 months. Any data coming from before this period would be seriously affected by external events (biased).
-Several details were provided, such as type of store, variety of products offered and the competition proximity. Other variable info such as customers per day and sales per day, holidays, marketing promotions were available too.
-
-However, it was necessary to assume some things. As you can see down below.
-
-- **Conmpetition proximity**: Was expressed in meters but, sometimes it was zero. So, 'Zero Competition Distance' was the same as 'No Competition Proximity'. But, for ML Algorithms this input is a bias. In this case, I assumed a fixed value (100,000 m) higher than the highest value in the dataset.
-- **Assortment**: I assumed there is a hierarchy between types. So, stores with Assortment Type C must offer Types A and B too.
-- **Store Open**: I removed all the lines that indicate Store Closed, as we also had Zero sales on the same day. For ML purposes, this will be reviewed in future CRISP cycle.
-- **Sales Prediction**: In agreement with the CFO, I presumed they would provide the total sales for eatch store at the end of the sixth week.
+## About the Dataset
+- Number of rows:  1017209
+- Number of columns:  18
 
 
+##  Business Assumptions
 
-My strategy to solve this challenge was based in CRISP-DM Cycle:
-
-**00. Understand the Problem:** _The most important step for correct plan entire solution_.
-
-**01. Data Description:** My goal is to use statistics metrics to identify data outside the scope of business.
-
-**02. Data Filtering:** Filter rows and select columns that do not contain information for modeling or that do not match the scope of the business.
-
-**03. Feature Engineering:** Derive new attributes based on the original variables to better describe the phenomenon that will be modeled.
-
-**04. Exploratory Data Analysis:** Explore the data to find insights and better understand the impact of variables on model learning.
-
-**05. Data Preparation:** Prepare the data so that the Machine Learning models can learn the specific behavior.
-
-**06. Feature Selection:** Selection of the most significant attributes for training the model.
-
-**07. Machine Learning Modelling:** Machine Learning model training
-
-**08. Hyperparameter Fine Tunning:** Choose the best values for each of the parameters of the model selected from the previous step.
-
-**09. Convert Model Performance to Business Values:** Convert the performance of the Machine Learning model into a business result.
-
-**10. Deploy Model to Production:** Publish the model to a cloud environment so other people or services can use the results to improve the business decision. __In this particular case, the model can be accessible from a Telegram Bot__.
-
-# 3. ML and Metrics
-
-ML step may be the most interesting setp. There is were the 'magic' happens. Well, I tested four (4) Machine Learning Algoritms: Linear Regression, Lasso Regression, Random Forest Regressor and a XGBoost Regressor. The metrics applied to measure the performance of the algorithms were MAE, MAPE and RMSE.
-
-So, the results from these metrics can be seen in the table below:
+- 'competition_distance': applied the value of 200,000 of NaN values to guarantee more data (Max value identified: 75860.0)
+- 'competition_open_since_month': fill NaN values with the month of 'date'
+- 'competition_open_since_year': fill NaN values with the month of 'date'
+- 'promo2_since_week': = fill NaN values with the week of 'date'
+- 'promo2_since_year': = fill NaN values with the year of 'date'
+- 'promo_interval': fill NaN values with 0
+- 'month_map': change the integer value of month('date') to string in words (Jan, Feb, Mar...)
+- 'is_promo': 0 if 'promo_interval' = 0 and 1 if there is any month present in 'month_map'
 
 
-|       Model Name          |        MAE CV       |     MAPE CV    |      RMSE CV       |
-|:-------------------------:|:-------------------:|:--------------:|:------------------:|
-| Linear Regression         |  2082.46 +/- 295.78 | 30.26 +/- 1.66 | 2950.11 +/- 468.88 |
-| Lasso Regression          |  2116.65 +/- 341.58 | 29.2  +/- 1.18 | 3056.56 +/- 504.44 |
-| Random Forest Regressor   |  837.7   +/- 219.23 | 11.61 +/- 2.32 | 1256.59 +/- 320.26 |
-| XGBoost Regressor         |  2889.54 +/- 343.25 | 34.54 +/- 1.39 | 3714.69 +/- 456.1  |
-# 
+![](img/categorical_exploration.png)
 
 
-My final choice of model was XGBoost.
+## Feature Engineering
 
-What !?!? Why did I choose XGBoost over Random Forest ? See the RMSE above !
-
-Well, I did it because the company's policy is to do not go over the budget ($0.00).
-
-All ML projects have to be lined with budget. Can the final model be sustained by the business infrastructure?
-
-Do the results (direct or indirect) affect, or are affected, by any internal company policy?
-
-In this case, the model will be hosted on a free cloud (Heroku), where we have a space limitation. If I choose random forest, the final model would be 1GB. Meanwhile, with XGBoost, the model became much smaller.
-
-The metric problems can be solved in "Hyperparameter fine tuning" step. 
-Look the metrics after a better choice of parameters to train the model:
+![](img/daily_store_sales.png)
 
 
-|    Model Name        |     MAE      |    MAPE%    |     RMSE       |
-|:--------------------:|:------------:|:-----------:|:--------------:|
-|  XGBoost Regressor   |   764.9756   |   11.4861   |   1,100.7251   |
-# 
-(RMSE better than Random Forest !)
-_This is the result of a lot of work ... and a (very) little bit of experience._
+Features to create:
+-'year': year of 'date' in integer
+-'month': month of 'date' in integer
+-'day': day of 'date' in integer
+-'week_of_year': weekofyear of 'date' in integer
+-'year_week': st ring format ('%Y-%W') of 'date'
+-'competition_since': = apply datetime considering (year = 'competition_open_since_year', month =  competition_open_since_month', day = 1)
+-'competition_time_month': amount of days based on (('date' - 'competition_since') / 30)
+-'promo_since': concat('promo2_since_year', '-', 'promo2_since_week')
+-'promo_since': transform 'promo_since' in datetime format and decrease 1 week
+-'promo_time_week': amount of days based on (('date' - 'promo_since') / 7)
+-'assortment': 'basic' if 'a' else 'extra' if 'b' else 'extended'
+-'state_holiday': 'public_holiday' if 'a' else 'easter_holiday' if 'b' else  'christmas' if  'c' else 'regular_day'
 
 
-# 4. Business Results.
+## Data Filtering
 
-It all appears to be good, beautiful ... but without converting these metrics in Business Words ... all the work can be ruined !
-Business People don't understand RMSE. Maybe they understand MAE and MAPE, but 'cold' numbers they, certainly, understand. Graphics also help. 
-
-For example, the table below show the TOTAL of predictions. Considering the best and worst cenarios.
-
-|   Scenario     |      Values      |
-|:--------------:|:----------------:|
-| predictions    | $ 286,435,616.00 |
-| worst_scenario | $ 285,579,535.55 |
-| best_scenario  | $ 287,291,675.73 |
-
-# 
-Below we have a Scatter Plot with all the predictions. Notice that most are centered around a line parallel to the X axis (MAPE 11% in Y axis). However, there are points quite far apart. This is because there are stores for which the forecasts are not so accurate, while others are very assertive.
-
-![](scatter_plot.png)
-# 
-Ok, but what does this deviation really represent? 
-
-Check the table below for the 5 best cases.
-
-|store|predictions|worst_scenario|best_scenario|MAE|MAPE|
-|-----|-----------|--------------|-------------|---|----|
-|1089|373,394.1875|372,825.1184|373,963.2566|569.0691|5.3232|
-|667 |315,185.8438|314,693.4028|315,678.2847|492.4410|5.5487|
-|323 |282,916.4688|282,488.0610|283,344.8765|428.4077|5.6277|
-|742 |301,657.5312|301,199.1451|302,115.9174|458.3861|5.6393|
-|1097|450,342.1562|449,703.2118|450,981.1007|638.9445|5.7761|
-
-# 
-And the table below with 5 worst cases.
+- Consider only opened stores: 'open' != 0
+- Consider only sotres with positive sales: 'sales' > 0
+- Drop columns those don't have use case: ['customers','open','promo_interval','month_map']
 
 
-|store|predictions|worst_scenario|best_scenario|MAE|MAPE|
-|-----|-----------|--------------|-------------|---|----|
-|292|108,359.7891|104,977.6086|111,741.9695|3,382.1804|60.2768|
-|909|220,300.0781|212,395.1411|228,205.0152|7,904.9371|51.8675|
-|876|194,060.8125|189,924.5347|198,197.0903|4,136.2778|33.7730|
-|170|201,541.6875|200,194.4216|202,888.9534|1,347.2659|33.2923|
-|749|206,800.9531|205,789.1920|207,812.7142|1,011.7611|28.3049|
+## Univariate Analysis
+> Part 1
 
-# 
-# 5. Sneak peak from Telegram Bot.
-# 
-![](telegram-bot.png)
+![](img/univariate_analysis.png)
+
+- Highly concentrated in PUBLIC HOLIDAY
+- There's no significant sifference in SALES with the category variables;
+- Highly concentrated in STORE B
+
+
+> Part 2
+
+![](img/univariate_analysis2.png)
 
 
 
-# 6. Lessons Learned.
+## Hipothesis Created
+> Store
 
-- Metrics are important, but they are not everything;
-- Make more graphics, make better graphics;
-- Keep your code clean;
-- Plan... and re-plan your work;
-- Git is your friend.
-
-# 7. In the next cycle ?
-
-- Better plots;
-- More tests in ML algoritms;
-- Build a pipeline to retrain model.
+**1.** Stores with more assortment should sell more
+**2.** Store with closer competitors shoudl sell less
+**3.** Stores with long period competitors should sell more
 
 
+> Product
 
-# 
-# 
-###### Edited with Haroopad
-
-
-
+**4.** Stores with longer active promotions should sell more
+**5.** Stores with more days of promotions should sell more
+**6.** Stores with more consecutive promotions should sell more
 
 
+> Time
+
+**7.** Stores should sell more after day 10 of each month
+**8.** Stores should sell less on weekends
+**9.** Stores should sell less in scholar holidays
 
 
+## Hipothesis Evaluated
+| ID  | Hypothesis                                                | Conclusion |
+|:----:|:---------------------------------------------------------|:-----------|
+| H1  | Stores with more assortment should sell more              | FALSE |
+| H2  | Store with closer competitors shoudl sell less            | FALSE |
+| H3  | Stores with long period competitors should sell more      | FALSE |
+| H4  | Stores with longer active promotions should sell more     | FALSE |
+| H5  | Stores with more days of promotions should sell more      | FALSE |
+| H6  | Stores with more consecutive promotions should sell more  | FALSE |
+| H7  | Stores should sell more after day 10 of each month        | TRUE |
+| H8  | Stores should sell less on weekends                       | TRUE |
+| H9  | Stores should sell less in scholar holidays               | TRUE |
+
+
+
+## Multivariate analysis
+
+![](img/multivariate_analysis.png)
+
+> Key points:
+- open and sales: high positive correlation
+- open and customers: high positive correlation
+- promo and sales: moderate positive correlation
+- promo and customers: moderate positive correlation
+- promo and open: moderate positive correlation
+
+
+![](img/cramer_v.png)
+
+> Key points:
+- assortment and store_type: moderate positive correlation
+
+
+## Data Preparation
+
+- RobustScaler: 'competition_distance' and 'competition_time_month'
+- MinMaxScaler: 'promo_time_week' and 'year'
+- OneHotEncoding: pandas dummies in 'state_holiday'
+- LabelEncoding: 'store_type'
+- OrdinalEncoding: 'assortment with these values {'basic': 1, 'extra': 2, 'extended': 3}
+- Target Transformation: change the dimension of 'sales' in log1p( 'sales' )
+- Nature Transformation: due these variables be cyclical
+    - 'day_of_week_sin': lambda x: np.sin( x * (2 * np.pi / 7 ) ) 
+    - 'day_of_week_cos': lambda x: np.cos( x * (2 * np.pi / 7 ) ) 
+    - 'month_sin': lambda x: np.sin( x * (2 * np.pi / 12 ) ) 
+    - 'month_cos': lambda x: np.cos( x * (2 * np.pi / 12 ) ) 
+    - 'day_sin': lambda x: np.sin( x * (2 * np.pi / 30 ) ) 
+    - 'day_cos': lambda x: np.cos( x * (2 * np.pi / 30 ) ) 
+    - 'week_of_year_sin': lambda x: np.sin( x * (2 * np.pi / 52 ) ) 
+    - 'week_of_year_cos': lambda x: np.cos( x * (2 * np.pi / 52 ) ) 
+
+
+## Feature Selection
+- Remove columns: ['week_of_year', 'day', 'month', 'day_of_week', 'promo_since', 'competition_since', 'year_week']
+- Train dataset: data in the condition -> 'date' < '2015-06-19'
+- Test dataset: data in the condition -> 'date' >= '2015-06-19'
+- Columns selected (Boruta): ['store','promo','store_type','assortment','competition_distance','competition_open_since_month','competition_open_since_year',
+                'promo2','promo2_since_week','promo2_since_year','competition_time_month','promo_time_week','day_of_week_sin','day_of_week_cos',
+                'month_cos','month_sin','day_sin','day_cos','week_of_year_sin','week_of_year_cos']
+- Added columns: ['date','sales']
+
+
+
+## Machine Learning Modeling
+
+- Baseline model created: used the mean('sales') as 'predictions' in the test dataset
+- Models tested:
+    - Linear Regression (standard values)
+    - Lasso (alpha = 0.01)
+    - Random Forest Regressor(n_estimators=100, n_jobs=2, random_state=42)
+    - XGBRegressor(objective = 'reg:squarederror',n_estimators=100, eta = 0.01, max_depth = 10, subsample = 0.7, colsample_bytree = 0.9)
+
+![](model_comparison.PNG)
+
+
+## Tuning
+
+- Model chosen: XGB (fast and light)
+- RandomSeach: 
+    - param = {'n_estimators': [1500, 1700,2500, 3000, 3500],'eta': [0.01, 0.03],'max_depth': [3, 5, 9],'subsample': [0.1, 0.5, 0.7],'colsample_bytree': [0.3, 0.7, 0.9],'min_child_weight': [3, 8, 15]}
+
+- Tuned values:
+    - param_tuned = {'n_estimators': 3000,'eta': 0.03,'max_depth': 5,'subsample': 0.7,'colsample_bytree': 0.7,'min_child_weight': 3}
+
+
+![](tuned_model.PNG)
+
+
+
+## Business Performance
+
+- Applied 'MAPE' and 'MAE' metrics
+- Created 'worst_scenario': 'predictions' - 'MAE'
+- Created 'best_scenario': 'predictions' + 'MAE'
+
+![](mae.png)
+
+- Performance by stores
+
+![](performance_by_store.PNG)
+
+
+- Total performance: sumarize all scenarios
+
+![](total_performance.PNG)
+
+
+- Error rate
+
+![](error_rate.png)
+
+
+## Deployment
+
+- Model deployed on Heroku, with Flask and requests
+- Created a Telegram Bot to send the Store code to receive the predictions of the next 6 weeks 
