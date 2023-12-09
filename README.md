@@ -18,14 +18,14 @@ Therefore, the principal stakeholder is the CFO, but from which all store manage
 
 ##  Business Assumptions
 
-- '**competition_distance**': applied the value of 200,000 of NaN values to guarantee more data (Max value identified: 75860.0)
-- '**competition_open_since_month**': fill NaN values with the month of 'date'
-- '**competition_open_since_year**': fill NaN values with the month of 'date'
-- '**promo2_since_week**': fill NaN values with the week of 'date'
-- '**promo2_since_year**': fill NaN values with the year of 'date'
-- '**promo_interval**': fill NaN values with 0
-- '**month_map**': change the integer value of month('date') to string in words (Jan, Feb, Mar...)
-- '**is_promo**': 0 if 'promo_interval' = 0 and 1 if there is any month present in 'month_map'
+- '**competition_distance**': `applied the value of 200,000 of NaN values to guarantee more data (Max value identified: 75860.0)`
+- '**competition_open_since_month**': `fill NaN values with the month of 'date'`
+- '**competition_open_since_year**': `fill NaN values with the month of 'date'`
+- '**promo2_since_week**': `fill NaN values with the week of 'date'`
+- '**promo2_since_year**': `fill NaN values with the year of 'date'`
+- '**promo_interval**': `fill NaN values with 0`
+- '**month_map**': `change the integer value of month('date') to string in words (Jan, Feb, Mar...)`
+- '**is_promo**': `0 if 'promo_interval' = 0 and 1 if there is any month present in 'month_map'`
 
 
 ![](img/categorical_exploration.png)
@@ -127,26 +127,26 @@ Features to create:
 ![](img/cramer_v.png)
 
 > Key points:
-- **assortment** and **store_type**: moderate positive correlation
+- **assortment** and **store_type**: `moderate positive correlation`
 
 
 ## Data Preparation
 
-- **RobustScaler**: 'competition_distance' and 'competition_time_month'
-- **MinMaxScaler**: 'promo_time_week' and 'year'
-- **OneHotEncoding**: pandas dummies in 'state_holiday'
-- **LabelEncoding**: 'store_type'
-- **OrdinalEncoding**: 'assortment with these values {'basic': 1, 'extra': 2, 'extended': 3}
-- **Target Transformation**: change the dimension of 'sales' in log1p( 'sales' )
-- **Nature Transformation**: due these variables be cyclical
-    - '**day_of_week_sin**': lambda x: np.sin( x * (2 * np.pi / 7 ) ) 
-    - '**day_of_week_cos**': lambda x: np.cos( x * (2 * np.pi / 7 ) ) 
-    - '**month_sin**': lambda x: np.sin( x * (2 * np.pi / 12 ) ) 
-    - '**month_cos**': lambda x: np.cos( x * (2 * np.pi / 12 ) ) 
-    - '**day_sin**': lambda x: np.sin( x * (2 * np.pi / 30 ) ) 
-    - '**day_cos**': lambda x: np.cos( x * (2 * np.pi / 30 ) ) 
-    - '**week_of_year_sin**': lambda x: np.sin( x * (2 * np.pi / 52 ) ) 
-    - '**week_of_year_cos**': lambda x: np.cos( x * (2 * np.pi / 52 ) ) 
+- **RobustScaler**: `'competition_distance' and 'competition_time_month'`
+- **MinMaxScaler**: `'promo_time_week' and 'year'`
+- **OneHotEncoding**: `pandas dummies in 'state_holiday'`
+- **LabelEncoding**: `'store_type'`
+- **OrdinalEncoding**: `'assortment with these values {'basic': 1, 'extra': 2, 'extended': 3}`
+- **Target Transformation**: `change the dimension of 'sales' in log1p( 'sales' )`
+- **Nature Transformation**: `due these variables be cyclical`
+    - '**day_of_week_sin**': `lambda x: np.sin( x * (2 * np.pi / 7 ) )`
+    - '**day_of_week_cos**': `lambda x: np.cos( x * (2 * np.pi / 7 ) )`
+    - '**month_sin**': `lambda x: np.sin( x * (2 * np.pi / 12 ) )`
+    - '**month_cos**': `lambda x: np.cos( x * (2 * np.pi / 12 ) )`
+    - '**day_sin**': `lambda x: np.sin( x * (2 * np.pi / 30 ) )`
+    - '**day_cos**': `lambda x: np.cos( x * (2 * np.pi / 30 ) )`
+    - '**week_of_year_sin**': `lambda x: np.sin( x * (2 * np.pi / 52 ) )`
+    - '**week_of_year_cos**': `lambda x: np.cos( x * (2 * np.pi / 52 ) )`
 
 
 ## Feature Selection
